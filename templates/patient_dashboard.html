@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Dashboard — FaceHealth</title>
+  <meta name="description" content="Patient profile, recent scans, and treatment history">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <div class="brand-icon">🏥</div>
+        <span>FaceHealth</span>
+        <span class="role-badge" style="background:rgba(16,185,129,0.12); color:var(--emerald-400); border-color:rgba(16,185,129,0.2);">Patient</span>
+      </div>
+      <div class="actions">
+        <a class="btn sm ghost" href="{{ url_for('home') }}">🏠 Home</a>
+        <a class="btn sm" href="{{ url_for('scan') }}">📸 Scan</a>
+        <a class="btn sm ghost" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    {% if patient %}
+    <!-- Profile Hero Card -->
+    <section class="profile-hero" data-animate="fade-up">
+      <div class="profile-content">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-info">
+          <h2>{{ patient.name }}</h2>
+          <div class="profile-details">
+            <div class="detail-item">
+              <span class="detail-label">Patient ID</span>
+              <span class="detail-value">{{ patient.patient_id }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Date of Birth</span>
+              <span class="detail-value">{{ patient.dob or '—' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Phone</span>
+              <span class="detail-value">{{ patient.phone or '—' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Blood Group</span>
+              <span class="detail-value">{{ patient.blood_group or '—' }}</span>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <a class="btn sm" href="{{ url_for('view_treatments', patient_id=patient.patient_id) }}">🩺 View Treatments</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Row -->
+    <div class="stats-row" data-animate="fade-up" data-delay="100">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value count-up" data-count="{{ reports|length }}">0</div>
+        <div class="stat-label">Total Scans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🩺</div>
+        <div class="stat-value count-up" data-count="{{ treatments|length }}">0</div>
+        <div class="stat-label">Treatments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🩸</div>
+        <div class="stat-value" style="font-size:1.5rem;">{{ patient.blood_group or '—' }}</div>
+        <div class="stat-label">Blood Group</div>
+      </div>
+    </div>
+    {% else %}
+    <div class="card" data-animate="fade-up" style="text-align:center; padding:48px;">
+      <p style="font-size:1.1rem; color:var(--text-muted);">No profile available.</p>
+    </div>
+    {% endif %}
+
+    <!-- Recent Scans -->
+    <div class="card" data-animate="fade-up" data-delay="200">
+      <h3>📋 Recent Scans</h3>
+      <table>
+        <tr>
+          <th>Date</th>
+          <th>Result</th>
+        </tr>
+        {% for r in reports %}
+          <tr>
+            <td>{{ r.timestamp.strftime('%b %d, %Y %H:%M') if r.timestamp else '' }}</td>
+            <td style="color:var(--text-primary); font-weight:500;">{{ r.name }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="2" style="text-align:center; color:var(--text-muted); padding:24px;">No scans recorded yet.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Treatments Timeline -->
+    <div class="card" data-animate="fade-up" data-delay="300" style="margin-top:var(--space-lg);">
+      <h3>🩺 Treatment History</h3>
+      {% if treatments %}
+        <div class="timeline" style="margin-top:16px;">
+          {% for t in treatments %}
+            <div class="timeline-item">
+              <span class="timeline-date">{{ t.date }}</span>
+              <div class="timeline-content">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                  <span class="tag violet">{{ t.diagnosis }}</span>
+                  <span class="tag cyan">Dr. {{ t.doctor_name }}</span>
+                </div>
+                <p style="font-size:0.88rem; color:var(--text-secondary); margin:0;">{{ t.prescription }}</p>
+                {% if t.notes %}
+                  <p style="font-size:0.8rem; color:var(--text-muted); margin-top:6px;">📝 {{ t.notes }}</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color:var(--text-muted); padding:16px 0;">No treatments recorded yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan Patient — FaceHealth</title>
+  <meta name="description" content="Webcam-based face scan for patient recognition">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <div class="brand-icon">🏥</div>
+        <span>FaceHealth</span>
+      </div>
+      <div class="actions">
+        <a class="btn sm ghost" href="{{ url_for('root') }}">← Back</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="hero" data-animate="fade-up">
+      <h1>Scan Patient</h1>
+      <p style="color:var(--text-muted); font-size:0.88rem;">Position the patient's face within the guide and capture</p>
+    </header>
+
+    <!-- Scan Area -->
+    <div class="card" data-animate="fade-up" data-delay="100" style="text-align:center;">
+      <div class="scan-frame" style="margin:0 auto;">
+        <video id="video" width="640" height="480" autoplay playsinline></video>
+        <div class="face-guide"></div>
+        <div class="scan-line" id="scanLine"></div>
+      </div>
+      <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+
+      <!-- Controls -->
+      <div style="margin-top:24px;">
+        <button id="capture" class="capture-btn">
+          <span class="pulse-ring"></span>
+          Capture & Check
+        </button>
+      </div>
+
+      <!-- Loader -->
+      <div id="loader" style="display:none; margin-top:20px;">
+        <div class="spinner"><span class="dot"></span></div>
+        <p style="color:var(--text-muted); margin-top:8px; font-size:0.85rem;">Analyzing face...</p>
+      </div>
+
+      <!-- Result -->
+      <div id="resultCard" class="result-card" style="display:none;">
+        <div id="resultIcon" style="font-size:2rem; margin-bottom:8px;"></div>
+        <div id="resultText" style="font-size:1.1rem; font-weight:700;"></div>
+        <div id="resultSub" style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture');
+    const loader = document.getElementById('loader');
+    const scanLine = document.getElementById('scanLine');
+    const resultCard = document.getElementById('resultCard');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultText = document.getElementById('resultText');
+    const resultSub = document.getElementById('resultSub');
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => {
+        resultCard.style.display = 'block';
+        resultCard.classList.add('visible', 'no-match');
+        resultIcon.textContent = '🚫';
+        resultText.textContent = 'Camera Access Denied';
+        resultText.style.color = 'var(--rose-400)';
+        resultSub.textContent = err.message;
+      });
+
+    // Capture & recognize
+    captureBtn.onclick = async () => {
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL('image/jpeg');
+
+      // Show scanning state
+      loader.style.display = 'block';
+      resultCard.style.display = 'none';
+      resultCard.classList.remove('visible', 'match', 'no-match');
+      scanLine.classList.add('active');
+      captureBtn.disabled = true;
+      captureBtn.style.opacity = '0.6';
+
+      try {
+        const res = await fetch('/recognize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: dataURL })
+        });
+        const j = await res.json();
+
+        loader.style.display = 'none';
+        scanLine.classList.remove('active');
+        captureBtn.disabled = false;
+        captureBtn.style.opacity = '1';
+
+        resultCard.style.display = 'block';
+        // Small delay for transition
+        requestAnimationFrame(() => {
+          resultCard.classList.add('visible');
+        });
+
+        if (j.status === 'no_face') {
+          resultCard.classList.add('no-match');
+          resultIcon.textContent = '😶';
+          resultText.textContent = 'No Face Detected';
+          resultText.style.color = 'var(--rose-400)';
+          resultSub.textContent = 'Please position your face clearly and try again.';
+        } else if (j.status === 'ok') {
+          if (j.matched) {
+            resultCard.classList.add('match');
+            resultIcon.textContent = '✅';
+            resultText.textContent = j.name;
+            resultText.style.color = 'var(--emerald-400)';
+            resultSub.textContent = 'Patient identified successfully!';
+          } else {
+            resultCard.classList.add('no-match');
+            resultIcon.textContent = '❌';
+            resultText.textContent = 'Unknown Patient';
+            resultText.style.color = 'var(--rose-400)';
+            resultSub.textContent = 'No matching patient found in the database.';
+          }
+        } else {
+          resultCard.classList.add('no-match');
+          resultIcon.textContent = '⚠️';
+          resultText.textContent = 'Unexpected Response';
+          resultText.style.color = 'var(--amber-400)';
+          resultSub.textContent = JSON.stringify(j);
+        }
+      } catch (err) {
+        loader.style.display = 'none';
+        scanLine.classList.remove('active');
+        captureBtn.disabled = false;
+        captureBtn.style.opacity = '1';
+
+        resultCard.style.display = 'block';
+        requestAnimationFrame(() => {
+          resultCard.classList.add('visible', 'no-match');
+        });
+        resultIcon.textContent = '⚠️';
+        resultText.textContent = 'Error';
+        resultText.style.color = 'var(--rose-400)';
+        resultSub.textContent = err.message;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Treatment — FaceHealth</title>
+  <meta name="description" content="Add a new treatment record for a patient">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <div class="brand-icon">🏥</div>
+        <span>FaceHealth</span>
+      </div>
+      <div class="actions">
+        <a class="btn sm ghost" href="{{ url_for('view_treatments', patient_id=patient.patient_id) }}">← Back to Treatments</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="hero" data-animate="fade-up">
+      <div>
+        <h1>Add Treatment</h1>
+        <p style="color:var(--text-muted); margin-top:4px; font-size:0.88rem;">
+          Patient: <strong style="color:var(--cyan-400);">{{ patient.name }}</strong>
+          <span class="tag cyan" style="margin-left:8px;">{{ patient.patient_id }}</span>
+        </p>
+      </div>
+    </header>
+
+    <div class="card" data-animate="fade-up" data-delay="100">
+      <form method="POST" class="form">
+
+        <div class="form-group">
+          <label for="date">Treatment Date</label>
+          <input type="date" id="date" name="date" required>
+        </div>
+
+        <div class="form-group">
+          <label for="diagnosis">Diagnosis</label>
+          <textarea id="diagnosis" name="diagnosis" placeholder="Enter the diagnosis details..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="prescription">Prescription</label>
+          <textarea id="prescription" name="prescription" placeholder="Enter prescribed medication and dosage..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="doctor_name">Doctor Name</label>
+          <input id="doctor_name" name="doctor_name" placeholder="Dr. " required>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Additional Notes</label>
+          <textarea id="notes" name="notes" placeholder="Any additional notes or follow-up instructions..."></textarea>
+        </div>
+
+        <button type="submit">Save Treatment</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

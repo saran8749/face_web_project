@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — FaceHealth</title>
+  <meta name="description" content="Admin control panel for managing patients, scans, and reports">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar" data-animate="fade-in">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <div class="brand-icon">🏥</div>
+        <span>FaceHealth</span>
+        <span class="role-badge">Admin</span>
+      </div>
+      <div class="actions">
+        <a class="btn sm ghost" href="{{ url_for('home') }}">🏠 Home</a>
+        <a class="btn sm" href="{{ url_for('register') }}">➕ Register</a>
+        <a class="btn sm" href="{{ url_for('scan') }}">📸 Scan</a>
+        <a class="btn sm ghost" href="{{ url_for('export_reports') }}">⬇ Export</a>
+        <a class="btn sm ghost" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Page Header -->
+    <header class="hero" data-animate="fade-up">
+      <h1>Dashboard Overview</h1>
+    </header>
+
+    <!-- Stats Row -->
+    <div class="stats-row" data-animate="fade-up" data-delay="100">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value count-up" data-count="{{ patients|length }}">0</div>
+        <div class="stat-label">Total Patients</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value count-up" data-count="{{ reports|length }}">0</div>
+        <div class="stat-label">Total Scans</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🕐</div>
+        <div class="stat-value count-up" data-count="{{ reports|selectattr('report_date')|list|length }}">0</div>
+        <div class="stat-label">Reports</div>
+      </div>
+    </div>
+
+    <!-- Data Cards Grid -->
+    <section class="cards">
+
+      <!-- Patients Card -->
+      <div class="card" data-animate="fade-up" data-delay="200">
+        <h3>👥 Registered Patients</h3>
+        <table>
+          <tr>
+            <th>Patient ID</th>
+            <th>Name</th>
+            <th>DOB</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+          {% for p in patients %}
+            <tr>
+              <td><span class="tag cyan">{{ p.patient_id }}</span></td>
+              <td style="color:var(--text-primary); font-weight:500;">{{ p.name }}</td>
+              <td>{{ p.dob }}</td>
+              <td>{{ p.phone }}</td>
+              <td><a href="{{ url_for('view_treatments', patient_id=p.patient_id) }}">🩺 Treatments</a></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:24px;">No patients registered yet.</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+
+      <!-- Reports Card -->
+      <div class="card" data-animate="fade-up" data-delay="300">
+        <h3>📋 Recent Reports</h3>
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>Patient ID</th>
+            <th>Name</th>
+            <th>When</th>
+          </tr>
+          {% for r in reports %}
+            <tr>
+              <td>#{{ r.id }}</td>
+              <td><span class="tag violet">{{ r.patient_id }}</span></td>
+              <td style="color:var(--text-primary);">{{ r.name }}</td>
+              <td>{{ r.timestamp.strftime('%b %d, %Y %H:%M') if r.timestamp else '' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:24px;">No reports yet.</td></tr>
+          {% endfor %}
+        </table>
+      </div>
+
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Patient — FaceHealth</title>
+  <meta name="description" content="Register a new patient with photo for face recognition">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <div class="brand-icon">🏥</div>
+        <span>FaceHealth</span>
+      </div>
+      <div class="actions">
+        <a class="btn sm ghost" href="{{ url_for('admin_dashboard') }}">← Back to Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="hero" data-animate="fade-up">
+      <h1>Register New Patient</h1>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card" data-animate="fade-up" data-delay="100">
+      <form method="POST" enctype="multipart/form-data" class="form">
+        <div class="register-layout">
+
+          <!-- Left: Form Fields -->
+          <div>
+            <div class="form-group">
+              <label for="patient_id">Patient ID <span style="font-size:0.7rem;color:var(--emerald-400);font-weight:400;">(Auto-generated)</span></label>
+              <input id="patient_id" name="patient_id" placeholder="Loading..." required readonly style="background:rgba(6,182,212,0.06);border-color:rgba(6,182,212,0.15);color:var(--cyan-400);font-weight:600;cursor:default;letter-spacing:0.02em;">
+            </div>
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input id="name" name="name" placeholder="Enter patient's full name" required>
+            </div>
+            <div class="form-group">
+              <label for="dob">Date of Birth</label>
+              <input id="dob" name="dob" type="date">
+            </div>
+            <div class="form-group">
+              <label for="address">Address</label>
+              <input id="address" name="address" placeholder="Enter address">
+            </div>
+            <div class="form-group">
+              <label for="blood_group">Blood Group</label>
+              <input id="blood_group" name="blood_group" placeholder="e.g., A+, B-, O+">
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input id="phone" name="phone" placeholder="Enter phone number">
+            </div>
+          </div>
+
+          <!-- Right: Photo Upload -->
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <label style="font-size:0.78rem; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Patient Photo</label>
+            <div class="upload-zone">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">
+                Drag & drop or <span>browse</span>
+              </div>
+              <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Clear frontal face photo required</p>
+              <input name="photo" type="file" accept="image/*" required>
+            </div>
+            <img class="upload-preview" alt="Preview" id="photoPreview">
+          </div>
+
+        </div>
+
+        <button type="submit" style="margin-top:8px;">Register Patient</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+  <script>
+    fetch('/api/next-patient-id')
+      .then(r => r.json())
+      .then(d => { document.getElementById('patient_id').value = d.patient_id; })
+      .catch(() => { document.getElementById('patient_id').placeholder = 'Error generating ID'; });
+  </script>
+</body>
+</html>

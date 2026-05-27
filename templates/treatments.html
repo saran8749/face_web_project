@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Treatment History — FaceHealth</title>
+  <meta name="description" content="View complete treatment history for a patient">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-brand">
+        <div class="brand-icon">🏥</div>
+        <span>FaceHealth</span>
+      </div>
+      <div class="actions">
+        <a class="btn sm" href="{{ url_for('add_treatment', patient_id=patient.patient_id) }}">➕ Add Treatment</a>
+        <a class="btn sm ghost" href="{{ url_for('admin_dashboard') }}">← Dashboard</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="hero" data-animate="fade-up">
+      <div>
+        <h1>Treatment History</h1>
+        <p style="color:var(--text-muted); margin-top:4px; font-size:0.88rem;">
+          Patient: <strong style="color:var(--cyan-400);">{{ patient.name }}</strong>
+          <span class="tag cyan" style="margin-left:8px;">{{ patient.patient_id }}</span>
+        </p>
+      </div>
+    </header>
+
+    <!-- Treatments Timeline -->
+    <div class="card" data-animate="fade-up" data-delay="100">
+      {% if treatments %}
+        <div class="timeline" style="margin-top:8px;">
+          {% for t in treatments %}
+            <div class="timeline-item" data-animate="fade-up" data-delay="{{ loop.index * 80 }}">
+              <span class="timeline-date">{{ t.date }}</span>
+              <div class="timeline-content">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span class="tag rose">{{ t.diagnosis }}</span>
+                    <span class="tag cyan">Dr. {{ t.doctor_name }}</span>
+                  </div>
+                  <form method="POST" action="{{ url_for('delete_treatment', treatment_id=t.id) }}" onsubmit="return confirm('Are you sure you want to delete this treatment record? This action cannot be undone.');" style="margin:0;">
+                    <button type="submit" class="btn sm danger" style="padding:4px 10px; font-size:0.72rem;" title="Delete treatment">
+                      🗑️ Delete
+                    </button>
+                  </form>
+                </div>
+                <p style="color:var(--text-primary); font-size:0.9rem; margin:0; font-weight:500;">
+                  💊 {{ t.prescription }}
+                </p>
+                {% if t.notes %}
+                  <p style="color:var(--text-muted); font-size:0.8rem; margin-top:8px; padding-top:8px; border-top:1px solid var(--glass-border);">
+                    📝 {{ t.notes }}
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:48px 24px;">
+          <p style="font-size:2rem; margin-bottom:12px;">📋</p>
+          <p style="color:var(--text-muted); font-size:1rem;">No treatments recorded yet.</p>
+          <a class="btn" href="{{ url_for('add_treatment', patient_id=patient.patient_id) }}" style="margin-top:16px;">
+            ➕ Add First Treatment
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+</body>
+</html>

@@ -25,7 +25,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy requirements and install
+# Limit compiler to 1 CPU thread to avoid Out Of Memory (OOM) failures on free tier builders
+ENV MAKEFLAGS="-j 1"
+
 COPY requirements.txt .
 
 # Install production packages and compile dlib + face_recognition

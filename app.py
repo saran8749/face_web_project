@@ -254,7 +254,7 @@ def recognize():
     if known_encs and FACE_AVAILABLE:
         distances = face_recognition.face_distance(known_encs, enc)
         best = int(np.argmin(distances))
-        if float(distances[best]) < 0.5:
+        if float(distances[best]) < 0.6:
             pid = ids[best]
             patient = db.query(Patient).filter_by(patient_id=pid).first()
             name = patient.name
